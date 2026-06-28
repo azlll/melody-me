@@ -1,0 +1,2947 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>音乐唱作人 · App Demo</title>
+<style>
+  * {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  :root {
+    --primary: #7c3aed;
+    --primary-light: #a78bfa;
+    --primary-dark: #5b21b6;
+    --accent: #f472b6;
+    --accent-2: #22d3ee;
+    --bg-primary: #0f0a1f;
+    --bg-secondary: #1a1033;
+    --bg-card: rgba(255,255,255,0.06);
+    --bg-glass: rgba(15, 10, 31, 0.8);
+    --text-primary: #f8fafc;
+    --text-secondary: #94a3b8;
+    --text-tertiary: #64748b;
+    --success: #10b981;
+    --warning: #f59e0b;
+    --danger: #ef4444;
+    --border: rgba(255,255,255,0.1);
+    --divider: rgba(255,255,255,0.06);
+    --shadow-sm: 0 1px 2px rgba(0,0,0,0.3);
+    --shadow-md: 0 4px 12px rgba(0,0,0,0.3);
+    --shadow-lg: 0 8px 24px rgba(0,0,0,0.4);
+    --shadow-glow: 0 0 30px rgba(124, 58, 237, 0.3);
+  }
+
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'PingFang SC', 'Helvetica Neue', sans-serif;
+    background: #000;
+    color: var(--text-primary);
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 20px 0;
+    overflow: hidden;
+  }
+
+  /* 手机外壳 */
+  .phone-frame {
+    width: 390px;
+    height: 844px;
+    background: var(--bg-primary);
+    border-radius: 50px;
+    position: relative;
+    overflow: hidden;
+    box-shadow: 0 0 0 12px #1a1a1a, 0 0 0 14px #333, 0 50px 100px rgba(0,0,0,0.5);
+  }
+
+  .phone-frame::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 120px;
+    height: 30px;
+    background: #000;
+    border-radius: 0 0 20px 20px;
+    z-index: 1000;
+  }
+
+  /* 状态栏 */
+  .status-bar {
+    height: 44px;
+    padding: 0 24px 0 28px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    font-size: 15px;
+    font-weight: 600;
+    position: relative;
+    z-index: 100;
+  }
+
+  .status-bar .right {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+
+  .status-bar svg {
+    width: 16px;
+    height: 16px;
+  }
+
+  /* 导航栏 */
+  .nav-bar {
+    height: 44px;
+    padding: 0 16px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    position: relative;
+    z-index: 100;
+  }
+
+  .nav-title {
+    font-size: 17px;
+    font-weight: 600;
+    position: absolute;
+    left: 50%;
+    transform: translateX(-50%);
+  }
+
+  .nav-btn {
+    width: 44px;
+    height: 44px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: none;
+    border: none;
+    color: var(--text-primary);
+    cursor: pointer;
+    border-radius: 50%;
+    transition: all 0.2s;
+  }
+
+  .nav-btn:active {
+    transform: scale(0.9);
+    opacity: 0.7;
+  }
+
+  .nav-btn svg {
+    width: 22px;
+    height: 22px;
+  }
+
+  /* 页面容器 */
+  .page-container {
+    position: relative;
+    height: calc(844px - 44px - 44px - 83px);
+    overflow: hidden;
+  }
+
+  .page {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    overflow-y: auto;
+    overflow-x: hidden;
+    -webkit-overflow-scrolling: touch;
+    transform: translateX(100%);
+    transition: transform 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+    background: var(--bg-primary);
+  }
+
+  .page.active {
+    transform: translateX(0);
+  }
+
+  .page.tab-page {
+    transform: translateX(0);
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.25s ease;
+  }
+
+  .page.tab-page.active {
+    opacity: 1;
+    pointer-events: auto;
+  }
+
+  .page::-webkit-scrollbar {
+    display: none;
+  }
+
+  /* Tab Bar */
+  .tab-bar {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    height: 83px;
+    background: var(--bg-glass);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    border-top: 0.5px solid var(--border);
+    display: flex;
+    padding: 8px 0 34px;
+    z-index: 100;
+  }
+
+  .tab-item {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 3px;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+
+  .tab-item:active {
+    transform: scale(0.9);
+  }
+
+  .tab-item svg {
+    width: 24px;
+    height: 24px;
+    color: var(--text-tertiary);
+    transition: color 0.2s;
+  }
+
+  .tab-item span {
+    font-size: 10px;
+    color: var(--text-tertiary);
+    transition: color 0.2s;
+  }
+
+  .tab-item.active svg,
+  .tab-item.active span {
+    color: var(--primary-light);
+  }
+
+  .tab-item.center-btn {
+    position: relative;
+  }
+
+  .tab-item.center-btn .center-icon {
+    width: 48px;
+    height: 48px;
+    background: linear-gradient(135deg, var(--primary), var(--accent));
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-top: -20px;
+    box-shadow: 0 4px 20px rgba(124, 58, 237, 0.5);
+  }
+
+  .tab-item.center-btn .center-icon svg {
+    width: 24px;
+    height: 24px;
+    color: white;
+  }
+
+  /* ============= 创作首页 ============= */
+  .create-home {
+    padding: 0 16px 24px;
+  }
+
+  .greeting {
+    padding: 12px 0 20px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+
+  .greeting-left {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+
+  .avatar {
+    width: 44px;
+    height: 44px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, var(--primary), var(--accent));
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 18px;
+  }
+
+  .greeting-text h2 {
+    font-size: 18px;
+    font-weight: 700;
+    margin-bottom: 2px;
+  }
+
+  .greeting-text p {
+    font-size: 12px;
+    color: var(--text-secondary);
+  }
+
+  .quick-create {
+    position: relative;
+    height: 180px;
+    border-radius: 20px;
+    background: linear-gradient(135deg, rgba(124,58,237,0.3), rgba(244,114,182,0.2));
+    border: 1px solid rgba(255,255,255,0.1);
+    padding: 20px;
+    margin-bottom: 24px;
+    overflow: hidden;
+    cursor: pointer;
+    transition: transform 0.2s;
+  }
+
+  .quick-create:active {
+    transform: scale(0.98);
+  }
+
+  .quick-create::before {
+    content: '';
+    position: absolute;
+    top: -50%;
+    right: -20%;
+    width: 200px;
+    height: 200px;
+    background: radial-gradient(circle, rgba(244,114,182,0.3), transparent 70%);
+    animation: pulse 3s ease-in-out infinite;
+  }
+
+  @keyframes pulse {
+    0%, 100% { transform: scale(1); opacity: 0.5; }
+    50% { transform: scale(1.1); opacity: 0.8; }
+  }
+
+  .quick-create h3 {
+    font-size: 20px;
+    font-weight: 700;
+    margin-bottom: 6px;
+    position: relative;
+  }
+
+  .quick-create p {
+    font-size: 13px;
+    color: var(--text-secondary);
+    margin-bottom: 16px;
+    position: relative;
+  }
+
+  .quick-create .start-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 10px 20px;
+    background: rgba(255,255,255,0.15);
+    backdrop-filter: blur(10px);
+    border-radius: 24px;
+    font-size: 14px;
+    font-weight: 600;
+    position: relative;
+  }
+
+  .section-title {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 12px;
+  }
+
+  .section-title h3 {
+    font-size: 16px;
+    font-weight: 700;
+  }
+
+  .section-title .more {
+    font-size: 13px;
+    color: var(--text-secondary);
+  }
+
+  .recent-list {
+    margin-bottom: 24px;
+  }
+
+  .recent-item {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 12px;
+    background: var(--bg-card);
+    border-radius: 12px;
+    margin-bottom: 8px;
+    transition: all 0.2s;
+  }
+
+  .recent-item:active {
+    transform: scale(0.98);
+    background: rgba(255,255,255,0.1);
+  }
+
+  .recent-cover {
+    width: 48px;
+    height: 48px;
+    border-radius: 8px;
+    background: linear-gradient(135deg, var(--primary), var(--accent));
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+  }
+
+  .recent-cover svg {
+    width: 20px;
+    height: 20px;
+    color: white;
+  }
+
+  .recent-info {
+    flex: 1;
+    min-width: 0;
+  }
+
+  .recent-info h4 {
+    font-size: 14px;
+    font-weight: 600;
+    margin-bottom: 4px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .recent-info p {
+    font-size: 12px;
+    color: var(--text-secondary);
+  }
+
+  .inspiration-scroll {
+    display: flex;
+    gap: 10px;
+    overflow-x: auto;
+    padding-bottom: 4px;
+    margin: 0 -16px;
+    padding-left: 16px;
+    padding-right: 16px;
+  }
+
+  .inspiration-scroll::-webkit-scrollbar {
+    display: none;
+  }
+
+  .inspiration-card {
+    flex-shrink: 0;
+    width: 120px;
+    height: 100px;
+    border-radius: 12px;
+    padding: 12px;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    position: relative;
+    overflow: hidden;
+    transition: transform 0.2s;
+  }
+
+  .inspiration-card:active {
+    transform: scale(0.95);
+  }
+
+  .inspiration-card span {
+    font-size: 13px;
+    font-weight: 600;
+    position: relative;
+    z-index: 1;
+  }
+
+  .inspiration-card .emoji {
+    font-size: 24px;
+  }
+
+  /* ============= 录音页 ============= */
+  .record-page {
+    padding: 0 16px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    height: 100%;
+  }
+
+  .record-waveform {
+    width: 100%;
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  #recordCanvas {
+    width: 100%;
+    height: 200px;
+  }
+
+  .record-timer {
+    font-size: 48px;
+    font-weight: 200;
+    font-variant-numeric: tabular-nums;
+    margin: 20px 0;
+    letter-spacing: 2px;
+  }
+
+  .record-timer.recording {
+    color: var(--danger);
+  }
+
+  .record-controls {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    width: 100%;
+    padding: 20px 0 40px;
+  }
+
+  .record-side-btn {
+    width: 56px;
+    height: 56px;
+    border-radius: 50%;
+    background: var(--bg-card);
+    border: none;
+    color: var(--text-primary);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+
+  .record-side-btn:active {
+    transform: scale(0.9);
+  }
+
+  .record-side-btn svg {
+    width: 22px;
+    height: 22px;
+  }
+
+  .record-main-btn {
+    width: 80px;
+    height: 80px;
+    border-radius: 50%;
+    background: var(--danger);
+    border: 6px solid rgba(239, 68, 68, 0.3);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: all 0.2s;
+    animation: breathe 2s ease-in-out infinite;
+  }
+
+  .record-main-btn.recording {
+    background: var(--danger);
+    animation: none;
+  }
+
+  .record-main-btn.recording::before {
+    content: '';
+    width: 28px;
+    height: 28px;
+    background: white;
+    border-radius: 6px;
+  }
+
+  @keyframes breathe {
+    0%, 100% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.4); }
+    50% { box-shadow: 0 0 0 20px rgba(239, 68, 68, 0); }
+  }
+
+  .record-main-btn:active {
+    transform: scale(0.9);
+  }
+
+  .record-main-btn svg {
+    width: 32px;
+    height: 32px;
+    color: white;
+  }
+
+  .record-tip {
+    font-size: 13px;
+    color: var(--text-secondary);
+    text-align: center;
+    margin-bottom: 20px;
+  }
+
+  /* ============= 风格选择页 ============= */
+  .style-page {
+    padding: 0 16px 100px;
+  }
+
+  .style-section {
+    margin-bottom: 24px;
+  }
+
+  .style-section h3 {
+    font-size: 16px;
+    font-weight: 700;
+    margin-bottom: 12px;
+  }
+
+  .style-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 10px;
+  }
+
+  .style-card {
+    padding: 16px;
+    background: var(--bg-card);
+    border-radius: 12px;
+    border: 2px solid transparent;
+    cursor: pointer;
+    transition: all 0.25s cubic-bezier(0.34, 1.56, 0.64, 1);
+  }
+
+  .style-card:active {
+    transform: scale(0.95);
+  }
+
+  .style-card.selected {
+    border-color: var(--primary-light);
+    background: rgba(124, 58, 237, 0.2);
+  }
+
+  .style-card .emoji {
+    font-size: 28px;
+    margin-bottom: 8px;
+  }
+
+  .style-card h4 {
+    font-size: 14px;
+    font-weight: 600;
+  }
+
+  .tag-scroll {
+    display: flex;
+    gap: 8px;
+    overflow-x: auto;
+    padding-bottom: 4px;
+    margin: 0 -16px;
+    padding-left: 16px;
+    padding-right: 16px;
+  }
+
+  .tag-scroll::-webkit-scrollbar {
+    display: none;
+  }
+
+  .tag {
+    flex-shrink: 0;
+    padding: 8px 16px;
+    background: var(--bg-card);
+    border-radius: 20px;
+    font-size: 13px;
+    border: 1.5px solid transparent;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+
+  .tag:active {
+    transform: scale(0.95);
+  }
+
+  .tag.selected {
+    background: rgba(124, 58, 237, 0.3);
+    border-color: var(--primary-light);
+    color: var(--primary-light);
+  }
+
+  .theme-input {
+    width: 100%;
+    padding: 14px 16px;
+    background: var(--bg-card);
+    border: 1.5px solid var(--border);
+    border-radius: 12px;
+    color: var(--text-primary);
+    font-size: 15px;
+    outline: none;
+    transition: border-color 0.2s;
+  }
+
+  .theme-input:focus {
+    border-color: var(--primary-light);
+  }
+
+  .theme-input::placeholder {
+    color: var(--text-tertiary);
+  }
+
+  .bottom-action {
+    position: absolute;
+    bottom: 83px;
+    left: 0;
+    right: 0;
+    padding: 12px 16px;
+    background: linear-gradient(to top, var(--bg-primary) 60%, transparent);
+    z-index: 50;
+  }
+
+  .primary-btn {
+    width: 100%;
+    height: 48px;
+    background: linear-gradient(135deg, var(--primary), var(--accent));
+    border: none;
+    border-radius: 24px;
+    color: white;
+    font-size: 16px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s;
+    box-shadow: 0 4px 20px rgba(124, 58, 237, 0.4);
+  }
+
+  .primary-btn:active {
+    transform: scale(0.98);
+    opacity: 0.9;
+  }
+
+  .primary-btn:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
+
+  /* ============= 生成中页 ============= */
+  .generating-page {
+    padding: 40px 24px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    height: 100%;
+  }
+
+  .vinyl-container {
+    width: 200px;
+    height: 200px;
+    margin: 20px 0 40px;
+    position: relative;
+  }
+
+  .vinyl {
+    width: 100%;
+    height: 100%;
+    border-radius: 50%;
+    background: linear-gradient(135deg, var(--primary), var(--accent));
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    animation: spin 4s linear infinite;
+    box-shadow: 0 10px 40px rgba(124, 58, 237, 0.4);
+  }
+
+  .vinyl::before {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 60px;
+    height: 60px;
+    border-radius: 50%;
+    background: var(--bg-primary);
+  }
+
+  .vinyl::after {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 16px;
+    height: 16px;
+    border-radius: 50%;
+    background: var(--text-primary);
+  }
+
+  @keyframes spin {
+    from { transform: rotate(0deg); }
+    to { transform: rotate(360deg); }
+  }
+
+  .vinyl svg {
+    width: 60px;
+    height: 60px;
+    color: white;
+    z-index: 1;
+  }
+
+  .gen-status {
+    font-size: 18px;
+    font-weight: 600;
+    margin-bottom: 8px;
+  }
+
+  .gen-subtitle {
+    font-size: 13px;
+    color: var(--text-secondary);
+    margin-bottom: 32px;
+  }
+
+  .progress-bar {
+    width: 100%;
+    height: 4px;
+    background: var(--bg-card);
+    border-radius: 2px;
+    margin-bottom: 32px;
+    overflow: hidden;
+  }
+
+  .progress-fill {
+    height: 100%;
+    background: linear-gradient(90deg, var(--primary), var(--accent));
+    border-radius: 2px;
+    transition: width 0.5s ease;
+  }
+
+  .step-list {
+    width: 100%;
+  }
+
+  .step-item {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 12px 0;
+    border-bottom: 0.5px solid var(--divider);
+  }
+
+  .step-item:last-child {
+    border-bottom: none;
+  }
+
+  .step-icon {
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    background: var(--bg-card);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    font-size: 12px;
+    transition: all 0.3s;
+  }
+
+  .step-item.done .step-icon {
+    background: var(--success);
+  }
+
+  .step-item.active .step-icon {
+    background: var(--primary);
+    animation: stepPulse 1.5s ease-in-out infinite;
+  }
+
+  @keyframes stepPulse {
+    0%, 100% { box-shadow: 0 0 0 0 rgba(124, 58, 237, 0.4); }
+    50% { box-shadow: 0 0 0 8px rgba(124, 58, 237, 0); }
+  }
+
+  .step-icon svg {
+    width: 14px;
+    height: 14px;
+    color: white;
+  }
+
+  .step-text {
+    flex: 1;
+  }
+
+  .step-text h4 {
+    font-size: 14px;
+    font-weight: 500;
+    margin-bottom: 2px;
+  }
+
+  .step-text p {
+    font-size: 12px;
+    color: var(--text-secondary);
+  }
+
+  /* ============= 作品详情页 ============= */
+  .detail-page {
+    padding-bottom: 40px;
+  }
+
+  .detail-cover-section {
+    padding: 20px 16px 32px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+  }
+
+  .detail-cover {
+    width: 220px;
+    height: 220px;
+    border-radius: 16px;
+    background: linear-gradient(135deg, var(--primary), var(--accent));
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 20px;
+    box-shadow: 0 20px 40px rgba(124, 58, 237, 0.4);
+  }
+
+  .detail-cover.playing {
+    animation: coverRotate 20s linear infinite;
+    border-radius: 50%;
+  }
+
+  @keyframes coverRotate {
+    from { transform: rotate(0deg); }
+    to { transform: rotate(360deg); }
+  }
+
+  .detail-cover svg {
+    width: 60px;
+    height: 60px;
+    color: white;
+  }
+
+  .song-title {
+    font-size: 20px;
+    font-weight: 700;
+    margin-bottom: 6px;
+    text-align: center;
+  }
+
+  .song-meta {
+    font-size: 13px;
+    color: var(--text-secondary);
+    display: flex;
+    gap: 8px;
+    align-items: center;
+  }
+
+  .song-meta .dot {
+    width: 3px;
+    height: 3px;
+    border-radius: 50%;
+    background: var(--text-tertiary);
+  }
+
+  .player-section {
+    padding: 0 16px;
+    margin-bottom: 24px;
+  }
+
+  .player-progress {
+    width: 100%;
+    height: 4px;
+    background: var(--bg-card);
+    border-radius: 2px;
+    margin-bottom: 8px;
+    cursor: pointer;
+    position: relative;
+  }
+
+  .player-progress-fill {
+    height: 100%;
+    background: linear-gradient(90deg, var(--primary), var(--accent));
+    border-radius: 2px;
+    width: 0%;
+    position: relative;
+  }
+
+  .player-progress-fill::after {
+    content: '';
+    position: absolute;
+    right: -6px;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+    background: white;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+    opacity: 0;
+    transition: opacity 0.2s;
+  }
+
+  .player-progress:active .player-progress-fill::after {
+    opacity: 1;
+  }
+
+  .player-time {
+    display: flex;
+    justify-content: space-between;
+    font-size: 11px;
+    color: var(--text-tertiary);
+    margin-bottom: 16px;
+  }
+
+  .player-controls {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 32px;
+  }
+
+  .player-btn {
+    width: 48px;
+    height: 48px;
+    background: none;
+    border: none;
+    color: var(--text-primary);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: transform 0.2s;
+  }
+
+  .player-btn:active {
+    transform: scale(0.9);
+  }
+
+  .player-btn svg {
+    width: 24px;
+    height: 24px;
+  }
+
+  .player-btn.play-btn {
+    width: 64px;
+    height: 64px;
+    background: linear-gradient(135deg, var(--primary), var(--accent));
+    border-radius: 50%;
+    color: white;
+    box-shadow: 0 4px 20px rgba(124, 58, 237, 0.5);
+  }
+
+  .player-btn.play-btn svg {
+    width: 28px;
+    height: 28px;
+  }
+
+  .lyrics-section {
+    padding: 0 16px;
+    margin-bottom: 24px;
+  }
+
+  .lyrics-section h3 {
+    font-size: 16px;
+    font-weight: 700;
+    margin-bottom: 12px;
+  }
+
+  .lyrics-box {
+    background: var(--bg-card);
+    border-radius: 12px;
+    padding: 16px;
+    max-height: 160px;
+    overflow-y: auto;
+  }
+
+  .lyrics-box::-webkit-scrollbar {
+    display: none;
+  }
+
+  .lyric-line {
+    font-size: 14px;
+    line-height: 2;
+    color: var(--text-secondary);
+    transition: all 0.3s;
+  }
+
+  .lyric-line.active {
+    color: var(--primary-light);
+    font-size: 16px;
+    font-weight: 600;
+  }
+
+  .action-row {
+    display: flex;
+    gap: 12px;
+    padding: 0 16px;
+    margin-bottom: 24px;
+  }
+
+  .action-btn {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 6px;
+    padding: 14px 8px;
+    background: var(--bg-card);
+    border-radius: 12px;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+
+  .action-btn:active {
+    transform: scale(0.95);
+    background: rgba(255,255,255,0.1);
+  }
+
+  .action-btn svg {
+    width: 22px;
+    height: 22px;
+    color: var(--text-secondary);
+  }
+
+  .action-btn span {
+    font-size: 12px;
+    color: var(--text-secondary);
+  }
+
+  .stats-row {
+    display: flex;
+    padding: 0 16px;
+    margin-bottom: 24px;
+  }
+
+  .stat-item {
+    flex: 1;
+    text-align: center;
+    padding: 16px;
+    background: var(--bg-card);
+    border-right: 0.5px solid var(--divider);
+  }
+
+  .stat-item:first-child {
+    border-radius: 12px 0 0 12px;
+  }
+
+  .stat-item:last-child {
+    border-radius: 0 12px 12px 0;
+    border-right: none;
+  }
+
+  .stat-item .num {
+    font-size: 20px;
+    font-weight: 700;
+    color: var(--primary-light);
+    margin-bottom: 4px;
+  }
+
+  .stat-item .label {
+    font-size: 12px;
+    color: var(--text-secondary);
+  }
+
+  /* ============= 作品Tab ============= */
+  .works-page {
+    padding-bottom: 20px;
+  }
+
+  .works-nav {
+    padding: 0 16px 12px;
+    position: sticky;
+    top: 0;
+    background: var(--bg-primary);
+    z-index: 10;
+  }
+
+  .works-tabs {
+    display: flex;
+    gap: 4px;
+    background: var(--bg-card);
+    padding: 4px;
+    border-radius: 10px;
+  }
+
+  .works-tab {
+    flex: 1;
+    padding: 8px;
+    text-align: center;
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--text-secondary);
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+
+  .works-tab.active {
+    background: rgba(255,255,255,0.1);
+    color: var(--text-primary);
+  }
+
+  .works-list {
+    padding: 0 16px;
+  }
+
+  .work-item {
+    display: flex;
+    gap: 12px;
+    padding: 12px 0;
+    border-bottom: 0.5px solid var(--divider);
+    transition: all 0.2s;
+  }
+
+  .work-item:active {
+    opacity: 0.7;
+  }
+
+  .work-cover {
+    width: 56px;
+    height: 56px;
+    border-radius: 8px;
+    background: linear-gradient(135deg, var(--primary), var(--accent));
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    position: relative;
+  }
+
+  .work-cover svg {
+    width: 22px;
+    height: 22px;
+    color: white;
+  }
+
+  .work-info {
+    flex: 1;
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+  }
+
+  .work-info h4 {
+    font-size: 15px;
+    font-weight: 600;
+    margin-bottom: 4px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .work-info p {
+    font-size: 12px;
+    color: var(--text-secondary);
+  }
+
+  .work-actions {
+    display: flex;
+    align-items: center;
+    padding: 0 4px;
+  }
+
+  .work-actions button {
+    width: 36px;
+    height: 36px;
+    background: none;
+    border: none;
+    color: var(--text-tertiary);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    border-radius: 50%;
+  }
+
+  .work-actions button:active {
+    background: var(--bg-card);
+  }
+
+  .work-actions svg {
+    width: 18px;
+    height: 18px;
+  }
+
+  .empty-state {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 80px 40px;
+    text-align: center;
+  }
+
+  .empty-state .emoji {
+    font-size: 64px;
+    margin-bottom: 16px;
+  }
+
+  .empty-state h3 {
+    font-size: 16px;
+    font-weight: 600;
+    margin-bottom: 8px;
+  }
+
+  .empty-state p {
+    font-size: 13px;
+    color: var(--text-secondary);
+    line-height: 1.5;
+  }
+
+  /* ============= 发现Tab ============= */
+  .discover-page {
+    padding-bottom: 20px;
+  }
+
+  .discover-search {
+    padding: 0 16px 12px;
+    position: sticky;
+    top: 0;
+    background: var(--bg-primary);
+    z-index: 10;
+  }
+
+  .search-box {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 10px 14px;
+    background: var(--bg-card);
+    border-radius: 10px;
+  }
+
+  .search-box svg {
+    width: 18px;
+    height: 18px;
+    color: var(--text-tertiary);
+    flex-shrink: 0;
+  }
+
+  .search-box input {
+    flex: 1;
+    background: none;
+    border: none;
+    outline: none;
+    color: var(--text-primary);
+    font-size: 14px;
+  }
+
+  .search-box input::placeholder {
+    color: var(--text-tertiary);
+  }
+
+  .banner {
+    margin: 0 16px 24px;
+    height: 120px;
+    border-radius: 16px;
+    background: linear-gradient(135deg, rgba(124,58,237,0.4), rgba(244,114,182,0.3));
+    padding: 20px;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .banner h3 {
+    font-size: 18px;
+    font-weight: 700;
+    margin-bottom: 6px;
+  }
+
+  .banner p {
+    font-size: 12px;
+    color: var(--text-secondary);
+    margin-bottom: 12px;
+  }
+
+  .banner .banner-btn {
+    display: inline-block;
+    padding: 6px 14px;
+    background: rgba(255,255,255,0.2);
+    border-radius: 14px;
+    font-size: 12px;
+    font-weight: 500;
+  }
+
+  .hot-styles {
+    padding: 0 16px;
+    margin-bottom: 24px;
+  }
+
+  .hot-styles h3 {
+    font-size: 16px;
+    font-weight: 700;
+    margin-bottom: 12px;
+  }
+
+  .style-row {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 12px;
+  }
+
+  .style-mini {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 6px;
+    cursor: pointer;
+  }
+
+  .style-mini:active {
+    transform: scale(0.95);
+  }
+
+  .style-mini-icon {
+    width: 52px;
+    height: 52px;
+    border-radius: 14px;
+    background: var(--bg-card);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 24px;
+  }
+
+  .style-mini span {
+    font-size: 11px;
+    color: var(--text-secondary);
+  }
+
+  .recommend-section {
+    padding: 0 16px;
+    margin-bottom: 24px;
+  }
+
+  .recommend-section h3 {
+    font-size: 16px;
+    font-weight: 700;
+    margin-bottom: 12px;
+  }
+
+  .recommend-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 12px;
+  }
+
+  .recommend-card {
+    background: var(--bg-card);
+    border-radius: 12px;
+    overflow: hidden;
+    cursor: pointer;
+    transition: transform 0.2s;
+  }
+
+  .recommend-card:active {
+    transform: scale(0.98);
+  }
+
+  .recommend-cover {
+    height: 100px;
+    background: linear-gradient(135deg, var(--primary), var(--accent));
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+  }
+
+  .recommend-cover svg {
+    width: 36px;
+    height: 36px;
+    color: white;
+    opacity: 0.8;
+  }
+
+  .recommend-cover .plays {
+    position: absolute;
+    bottom: 8px;
+    right: 8px;
+    font-size: 11px;
+    color: white;
+    text-shadow: 0 1px 2px rgba(0,0,0,0.3);
+  }
+
+  .recommend-info {
+    padding: 10px;
+  }
+
+  .recommend-info h4 {
+    font-size: 13px;
+    font-weight: 600;
+    margin-bottom: 4px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .recommend-info p {
+    font-size: 11px;
+    color: var(--text-secondary);
+  }
+
+  /* ============= 我的Tab ============= */
+  .profile-page {
+    padding-bottom: 20px;
+  }
+
+  .profile-header {
+    padding: 20px 16px 24px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+  }
+
+  .profile-avatar {
+    width: 72px;
+    height: 72px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, var(--primary), var(--accent));
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 32px;
+    margin-bottom: 12px;
+  }
+
+  .profile-name {
+    font-size: 18px;
+    font-weight: 700;
+    margin-bottom: 4px;
+  }
+
+  .profile-bio {
+    font-size: 13px;
+    color: var(--text-secondary);
+    margin-bottom: 16px;
+  }
+
+  .profile-stats {
+    display: flex;
+    width: 100%;
+  }
+
+  .profile-stat {
+    flex: 1;
+    text-align: center;
+  }
+
+  .profile-stat .num {
+    font-size: 18px;
+    font-weight: 700;
+    margin-bottom: 2px;
+  }
+
+  .profile-stat .label {
+    font-size: 12px;
+    color: var(--text-secondary);
+  }
+
+  .vip-card {
+    margin: 0 16px 24px;
+    padding: 16px;
+    background: linear-gradient(135deg, #fbbf24, #f59e0b);
+    border-radius: 14px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+
+  .vip-card .vip-left h4 {
+    font-size: 15px;
+    font-weight: 700;
+    color: #1a1033;
+    margin-bottom: 4px;
+  }
+
+  .vip-card .vip-left p {
+    font-size: 12px;
+    color: rgba(26, 16, 51, 0.7);
+  }
+
+  .vip-card .vip-btn {
+    padding: 8px 16px;
+    background: rgba(26, 16, 51, 0.9);
+    color: #fbbf24;
+    font-size: 12px;
+    font-weight: 600;
+    border-radius: 16px;
+  }
+
+  .menu-section {
+    margin: 0 16px 24px;
+    background: var(--bg-card);
+    border-radius: 14px;
+    overflow: hidden;
+  }
+
+  .menu-item {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 14px 16px;
+    border-bottom: 0.5px solid var(--divider);
+    cursor: pointer;
+    transition: background 0.2s;
+  }
+
+  .menu-item:last-child {
+    border-bottom: none;
+  }
+
+  .menu-item:active {
+    background: rgba(255,255,255,0.05);
+  }
+
+  .menu-icon {
+    width: 32px;
+    height: 32px;
+    border-radius: 8px;
+    background: rgba(124, 58, 237, 0.2);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+  }
+
+  .menu-icon svg {
+    width: 18px;
+    height: 18px;
+    color: var(--primary-light);
+  }
+
+  .menu-text {
+    flex: 1;
+    font-size: 15px;
+  }
+
+  .menu-arrow {
+    color: var(--text-tertiary);
+  }
+
+  .menu-arrow svg {
+    width: 18px;
+    height: 18px;
+  }
+
+  /* ============= Toast ============= */
+  .toast {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    padding: 12px 20px;
+    background: rgba(0, 0, 0, 0.8);
+    border-radius: 8px;
+    font-size: 14px;
+    color: white;
+    z-index: 9999;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.3s;
+  }
+
+  .toast.show {
+    opacity: 1;
+  }
+
+  /* ============= 响应式 ============= */
+  @media (max-width: 450px) {
+    body {
+      padding: 0;
+      align-items: flex-start;
+      justify-content: center;
+    }
+
+    .phone-frame {
+      width: 100%;
+      height: 100vh;
+      border-radius: 0;
+      box-shadow: none;
+    }
+
+    .phone-frame::before {
+      display: none;
+    }
+
+    .page-container {
+      height: calc(100vh - 44px - 44px - 83px);
+    }
+  }
+</style>
+</head>
+<body>
+
+<div class="phone-frame">
+  <!-- 状态栏 -->
+  <div class="status-bar">
+    <span id="statusTime">9:41</span>
+    <div class="right">
+      <svg viewBox="0 0 24 24" fill="currentColor"><path d="M1 9l2 2c4.97-4.97 13.03-4.97 18 0l2-2C16.93 2.93 7.08 2.93 1 9zm8 8l3 3 3-3a4.237 4.237 0 0 0-6 0zm-4-4l2 2a7.074 7.074 0 0 1 10 0l2-2C15.14 9.14 8.87 9.14 5 13z"/></svg>
+      <svg viewBox="0 0 24 24" fill="currentColor"><path d="M15.67 4H14V2h-4v2H8.33C7.6 4 7 4.6 7 5.33v15.33C7 21.4 7.6 22 8.33 22h7.33c.74 0 1.34-.6 1.34-1.33V5.33C17 4.6 16.4 4 15.67 4z"/></svg>
+    </div>
+  </div>
+
+  <!-- 导航栏 -->
+  <div class="nav-bar" id="navBar">
+    <button class="nav-btn" id="navBack" style="visibility:hidden;">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"></polyline></svg>
+    </button>
+    <div class="nav-title" id="navTitle">创作</div>
+    <button class="nav-btn" id="navRight">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="1"></circle><circle cx="12" cy="5" r="1"></circle><circle cx="12" cy="19" r="1"></circle></svg>
+    </button>
+  </div>
+
+  <!-- 页面容器 -->
+  <div class="page-container" id="pageContainer">
+    <!-- 创作 Tab -->
+    <div class="page tab-page active" id="pageCreate">
+      <div class="create-home">
+        <div class="greeting">
+          <div class="greeting-left">
+            <div class="avatar">🎵</div>
+            <div class="greeting-text">
+              <h2>早上好，音乐人</h2>
+              <p>今天灵感爆棚吗？</p>
+            </div>
+          </div>
+          <button class="nav-btn">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path><path d="M13.73 21a2 2 0 0 1-3.46 0"></path></svg>
+          </button>
+        </div>
+
+        <div class="quick-create" onclick="goToRecord()">
+          <h3>开始创作</h3>
+          <p>哼一段旋律，AI 帮你变成歌</p>
+          <div class="start-btn">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M12 14c1.66 0 2.99-1.34 2.99-3L15 5c0-1.66-1.34-3-3-3S9 3.34 9 5v6c0 1.66 1.34 3 3 3zm5.3-3c0 3-2.54 5.1-5.3 5.1S6.7 14 6.7 11H5c0 3.41 2.72 6.23 6 6.72V21h2v-3.28c3.28-.48 6-3.3 6-6.72h-1.7z"/></svg>
+            立即开始
+          </div>
+        </div>
+
+        <div class="section-title">
+          <h3>最近创作</h3>
+          <span class="more">查看全部</span>
+        </div>
+        <div class="recent-list">
+          <div class="recent-item" onclick="goToDetail('夏天的回忆')">
+            <div class="recent-cover">
+              <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 3v10.55c-.59-.34-1.27-.55-2-.55-2.21 0-4 1.79-4 4s1.79 4 4 4 4-1.79 4-4V7h4V3h-6z"/></svg>
+            </div>
+            <div class="recent-info">
+              <h4>夏天的回忆</h4>
+              <p>流行 · 欢快 · 30s</p>
+            </div>
+          </div>
+          <div class="recent-item" onclick="goToDetail('午夜情歌')">
+            <div class="recent-cover" style="background: linear-gradient(135deg, #6366f1, #8b5cf6);">
+              <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 3v10.55c-.59-.34-1.27-.55-2-.55-2.21 0-4 1.79-4 4s1.79 4 4 4 4-1.79 4-4V7h4V3h-6z"/></svg>
+            </div>
+            <div class="recent-info">
+              <h4>午夜情歌</h4>
+              <p>R&B · 抒情 · 25s</p>
+            </div>
+          </div>
+          <div class="recent-item" onclick="goToDetail('梦想启航')">
+            <div class="recent-cover" style="background: linear-gradient(135deg, #10b981, #22d3ee);">
+              <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 3v10.55c-.59-.34-1.27-.55-2-.55-2.21 0-4 1.79-4 4s1.79 4 4 4 4-1.79 4-4V7h4V3h-6z"/></svg>
+            </div>
+            <div class="recent-info">
+              <h4>梦想启航</h4>
+              <p>电子 · 激昂 · 28s</p>
+            </div>
+          </div>
+        </div>
+
+        <div class="section-title">
+          <h3>灵感推荐</h3>
+        </div>
+        <div class="inspiration-scroll">
+          <div class="inspiration-card" style="background: linear-gradient(135deg, #ec4899, #f43f5e);">
+            <span class="emoji">🌸</span>
+            <span>甜系流行</span>
+          </div>
+          <div class="inspiration-card" style="background: linear-gradient(135deg, #8b5cf6, #6366f1);">
+            <span class="emoji">🌙</span>
+            <span>治愈民谣</span>
+          </div>
+          <div class="inspiration-card" style="background: linear-gradient(135deg, #f59e0b, #ef4444);">
+            <span class="emoji">🔥</span>
+            <span>热血摇滚</span>
+          </div>
+          <div class="inspiration-card" style="background: linear-gradient(135deg, #06b6d4, #3b82f6);">
+            <span class="emoji">🌊</span>
+            <span>电子海风</span>
+          </div>
+          <div class="inspiration-card" style="background: linear-gradient(135deg, #10b981, #84cc16);">
+            <span class="emoji">🍃</span>
+            <span>清新自然</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 录音页 -->
+    <div class="page" id="pageRecord">
+      <div class="record-page">
+        <div class="record-waveform">
+          <canvas id="recordCanvas"></canvas>
+        </div>
+        <div class="record-timer" id="recordTimer">00:00</div>
+        <p class="record-tip">点击红色按钮开始录音</p>
+        <div class="record-controls">
+          <button class="record-side-btn" id="deleteBtn" style="visibility:hidden;" onclick="deleteRecording()">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>
+          </button>
+          <div class="record-main-btn" id="recordBtn" onclick="toggleRecord()"></div>
+          <button class="record-side-btn" id="doneBtn" style="visibility:hidden;" onclick="goToStyle()">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- 风格选择页 -->
+    <div class="page" id="pageStyle">
+      <div class="style-page">
+        <div class="style-section">
+          <h3>选择风格</h3>
+          <div class="style-grid" id="styleGrid">
+            <div class="style-card selected" data-style="pop">
+              <div class="emoji">🎤</div>
+              <h4>流行</h4>
+            </div>
+            <div class="style-card" data-style="rock">
+              <div class="emoji">🎸</div>
+              <h4>摇滚</h4>
+            </div>
+            <div class="style-card" data-style="folk">
+              <div class="emoji">🎻</div>
+              <h4>民谣</h4>
+            </div>
+            <div class="style-card" data-style="electronic">
+              <div class="emoji">🎛️</div>
+              <h4>电子</h4>
+            </div>
+            <div class="style-card" data-style="hiphop">
+              <div class="emoji">🎧</div>
+              <h4>嘻哈</h4>
+            </div>
+            <div class="style-card" data-style="classical">
+              <div class="emoji">🎹</div>
+              <h4>古典</h4>
+            </div>
+            <div class="style-card" data-style="rnb">
+              <div class="emoji">🎷</div>
+              <h4>R&B</h4>
+            </div>
+            <div class="style-card" data-style="jazz">
+              <div class="emoji">🎺</div>
+              <h4>爵士</h4>
+            </div>
+          </div>
+        </div>
+
+        <div class="style-section">
+          <h3>情绪基调</h3>
+          <div class="tag-scroll" id="moodTags">
+            <div class="tag selected" data-mood="happy">😊 欢快</div>
+            <div class="tag" data-mood="sad">😢 抒情</div>
+            <div class="tag" data-mood="energetic">🔥 激昂</div>
+            <div class="tag" data-mood="gentle">🌸 温柔</div>
+            <div class="tag" data-mood="mysterious">🌙 神秘</div>
+            <div class="tag" data-mood="healing">🍃 治愈</div>
+          </div>
+        </div>
+
+        <div class="style-section">
+          <h3>选择乐器（可多选）</h3>
+          <div class="tag-scroll" id="instrTags">
+            <div class="tag selected" data-instr="piano">🎹 钢琴</div>
+            <div class="tag" data-instr="guitar">🎸 吉他</div>
+            <div class="tag" data-instr="drums">🥁 鼓</div>
+            <div class="tag" data-instr="bass">🎸 贝斯</div>
+            <div class="tag" data-instr="synth">🎹 合成器</div>
+            <div class="tag" data-instr="strings">🎻 弦乐</div>
+          </div>
+        </div>
+
+        <div class="style-section">
+          <h3>歌词主题</h3>
+          <input type="text" class="theme-input" id="themeInput" placeholder="例如：夏天、青春、梦想、爱情...">
+        </div>
+      </div>
+      <div class="bottom-action">
+        <button class="primary-btn" onclick="startGenerate()">开始生成</button>
+      </div>
+    </div>
+
+    <!-- 生成中页 -->
+    <div class="page" id="pageGenerating">
+      <div class="generating-page">
+        <div class="vinyl-container">
+          <div class="vinyl">
+            <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 3v10.55c-.59-.34-1.27-.55-2-.55-2.21 0-4 1.79-4 4s1.79 4 4 4 4-1.79 4-4V7h4V3h-6z"/></svg>
+          </div>
+        </div>
+        <div class="gen-status" id="genStatus">AI 正在聆听你的旋律...</div>
+        <p class="gen-subtitle">请稍等，你的专属歌曲即将诞生</p>
+        <div class="progress-bar">
+          <div class="progress-fill" id="genProgress" style="width: 0%"></div>
+        </div>
+        <div class="step-list">
+          <div class="step-item" id="step1">
+            <div class="step-icon">1</div>
+            <div class="step-text">
+              <h4>分析哼唱旋律</h4>
+              <p>提取你的声音特征</p>
+            </div>
+          </div>
+          <div class="step-item" id="step2">
+            <div class="step-icon">2</div>
+            <div class="step-text">
+              <h4>生成主旋律</h4>
+              <p>AI 创作核心旋律</p>
+            </div>
+          </div>
+          <div class="step-item" id="step3">
+            <div class="step-icon">3</div>
+            <div class="step-text">
+              <h4>匹配音乐风格</h4>
+              <p>编曲与配器设计</p>
+            </div>
+          </div>
+          <div class="step-item" id="step4">
+            <div class="step-icon">4</div>
+            <div class="step-text">
+              <h4>生成和声编曲</h4>
+              <p>和弦与低音声部</p>
+            </div>
+          </div>
+          <div class="step-item" id="step5">
+            <div class="step-icon">5</div>
+            <div class="step-text">
+              <h4>AI 智能填词</h4>
+              <p>根据主题生成歌词</p>
+            </div>
+          </div>
+          <div class="step-item" id="step6">
+            <div class="step-icon">6</div>
+            <div class="step-text">
+              <h4>混音处理</h4>
+              <p>最终音频优化</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 作品详情页 -->
+    <div class="page" id="pageDetail">
+      <div class="detail-page">
+        <div class="detail-cover-section">
+          <div class="detail-cover" id="detailCover">
+            <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 3v10.55c-.59-.34-1.27-.55-2-.55-2.21 0-4 1.79-4 4s1.79 4 4 4 4-1.79 4-4V7h4V3h-6z"/></svg>
+          </div>
+          <h2 class="song-title" id="detailTitle">夏天的回忆</h2>
+          <div class="song-meta">
+            <span>流行</span>
+            <span class="dot"></span>
+            <span>欢快</span>
+            <span class="dot"></span>
+            <span id="detailDuration">00:30</span>
+          </div>
+        </div>
+
+        <div class="player-section">
+          <div class="player-progress" id="playerProgress" onclick="seekTo(event)">
+            <div class="player-progress-fill" id="playerProgressFill"></div>
+          </div>
+          <div class="player-time">
+            <span id="currentTime">0:00</span>
+            <span id="totalTime">0:30</span>
+          </div>
+          <div class="player-controls">
+            <button class="player-btn">
+              <svg viewBox="0 0 24 24" fill="currentColor"><path d="M6 6h2v12H6zm3.5 6l8.5 6V6z"/></svg>
+            </button>
+            <button class="player-btn play-btn" id="playBtn" onclick="togglePlay()">
+              <svg viewBox="0 0 24 24" fill="currentColor" id="playIcon"><path d="M8 5v14l11-7z"/></svg>
+            </button>
+            <button class="player-btn">
+              <svg viewBox="0 0 24 24" fill="currentColor"><path d="M6 18l8.5-6L6 6v12zM16 6v12h2V6h-2z"/></svg>
+            </button>
+          </div>
+        </div>
+
+        <div class="action-row">
+          <div class="action-btn">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
+            <span>下载</span>
+          </div>
+          <div class="action-btn">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="18" cy="5" r="3"></circle><circle cx="6" cy="12" r="3"></circle><circle cx="18" cy="19" r="3"></circle><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"></line><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"></line></svg>
+            <span>分享</span>
+          </div>
+          <div class="action-btn">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path></svg>
+            <span>收藏</span>
+          </div>
+          <div class="action-btn">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg>
+            <span>编辑</span>
+          </div>
+        </div>
+
+        <div class="stats-row">
+          <div class="stat-item">
+            <div class="num">30s</div>
+            <div class="label">歌曲时长</div>
+          </div>
+          <div class="stat-item">
+            <div class="num">5</div>
+            <div class="label">音轨数量</div>
+          </div>
+          <div class="stat-item">
+            <div class="num">12</div>
+            <div class="label">歌词行数</div>
+          </div>
+        </div>
+
+        <div class="lyrics-section">
+          <h3>歌词</h3>
+          <div class="lyrics-box" id="lyricsBox">
+            <div class="lyric-line active">夏天的回忆在风中飘荡</div>
+            <div class="lyric-line">阳光洒在你脸上</div>
+            <div class="lyric-line">这是最美的时光</div>
+            <div class="lyric-line">我们一起歌唱</div>
+            <div class="lyric-line">风吹过操场</div>
+            <div class="lyric-line">笑声在回响</div>
+            <div class="lyric-line">青春的模样</div>
+            <div class="lyric-line">永远不会忘</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 作品 Tab -->
+    <div class="page tab-page" id="pageWorks">
+      <div class="works-page">
+        <div class="works-nav">
+          <div class="works-tabs">
+            <div class="works-tab active">全部</div>
+            <div class="works-tab">草稿</div>
+            <div class="works-tab">已发布</div>
+            <div class="works-tab">收藏</div>
+          </div>
+        </div>
+        <div class="works-list">
+          <div class="work-item" onclick="goToDetail('夏天的回忆')">
+            <div class="work-cover">
+              <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 3v10.55c-.59-.34-1.27-.55-2-.55-2.21 0-4 1.79-4 4s1.79 4 4 4 4-1.79 4-4V7h4V3h-6z"/></svg>
+            </div>
+            <div class="work-info">
+              <h4>夏天的回忆</h4>
+              <p>流行 · 欢快 · 30s · 今天 14:30</p>
+            </div>
+            <div class="work-actions">
+              <button>
+                <svg viewBox="0 0 24 24" fill="currentColor"><circle cx="12" cy="12" r="1"></circle><circle cx="12" cy="5" r="1"></circle><circle cx="12" cy="19" r="1"></circle></svg>
+              </button>
+            </div>
+          </div>
+          <div class="work-item" onclick="goToDetail('午夜情歌')">
+            <div class="work-cover" style="background: linear-gradient(135deg, #6366f1, #8b5cf6);">
+              <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 3v10.55c-.59-.34-1.27-.55-2-.55-2.21 0-4 1.79-4 4s1.79 4 4 4 4-1.79 4-4V7h4V3h-6z"/></svg>
+            </div>
+            <div class="work-info">
+              <h4>午夜情歌</h4>
+              <p>R&B · 抒情 · 25s · 昨天 22:15</p>
+            </div>
+            <div class="work-actions">
+              <button>
+                <svg viewBox="0 0 24 24" fill="currentColor"><circle cx="12" cy="12" r="1"></circle><circle cx="12" cy="5" r="1"></circle><circle cx="12" cy="19" r="1"></circle></svg>
+              </button>
+            </div>
+          </div>
+          <div class="work-item" onclick="goToDetail('梦想启航')">
+            <div class="work-cover" style="background: linear-gradient(135deg, #10b981, #22d3ee);">
+              <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 3v10.55c-.59-.34-1.27-.55-2-.55-2.21 0-4 1.79-4 4s1.79 4 4 4 4-1.79 4-4V7h4V3h-6z"/></svg>
+            </div>
+            <div class="work-info">
+              <h4>梦想启航</h4>
+              <p>电子 · 激昂 · 28s · 3天前</p>
+            </div>
+            <div class="work-actions">
+              <button>
+                <svg viewBox="0 0 24 24" fill="currentColor"><circle cx="12" cy="12" r="1"></circle><circle cx="12" cy="5" r="1"></circle><circle cx="12" cy="19" r="1"></circle></svg>
+              </button>
+            </div>
+          </div>
+          <div class="work-item" onclick="goToDetail('山野清风')">
+            <div class="work-cover" style="background: linear-gradient(135deg, #84cc16, #22c55e);">
+              <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 3v10.55c-.59-.34-1.27-.55-2-.55-2.21 0-4 1.79-4 4s1.79 4 4 4 4-1.79 4-4V7h4V3h-6z"/></svg>
+            </div>
+            <div class="work-info">
+              <h4>山野清风</h4>
+              <p>民谣 · 治愈 · 32s · 1周前</p>
+            </div>
+            <div class="work-actions">
+              <button>
+                <svg viewBox="0 0 24 24" fill="currentColor"><circle cx="12" cy="12" r="1"></circle><circle cx="12" cy="5" r="1"></circle><circle cx="12" cy="19" r="1"></circle></svg>
+              </button>
+            </div>
+          </div>
+          <div class="work-item" onclick="goToDetail('都市夜未眠')">
+            <div class="work-cover" style="background: linear-gradient(135deg, #f43f5e, #ec4899);">
+              <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 3v10.55c-.59-.34-1.27-.55-2-.55-2.21 0-4 1.79-4 4s1.79 4 4 4 4-1.79 4-4V7h4V3h-6z"/></svg>
+            </div>
+            <div class="work-info">
+              <h4>都市夜未眠</h4>
+              <p>爵士 · 温柔 · 26s · 2周前</p>
+            </div>
+            <div class="work-actions">
+              <button>
+                <svg viewBox="0 0 24 24" fill="currentColor"><circle cx="12" cy="12" r="1"></circle><circle cx="12" cy="5" r="1"></circle><circle cx="12" cy="19" r="1"></circle></svg>
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 发现 Tab -->
+    <div class="page tab-page" id="pageDiscover">
+      <div class="discover-page">
+        <div class="discover-search">
+          <div class="search-box">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
+            <input type="text" placeholder="搜索音乐、创作者...">
+          </div>
+        </div>
+
+        <div class="banner">
+          <h3>AI 音乐创作大赛</h3>
+          <p>用你的哼唱赢取万元大奖</p>
+          <span class="banner-btn">立即参与</span>
+        </div>
+
+        <div class="hot-styles">
+          <h3>热门风格</h3>
+          <div class="style-row">
+            <div class="style-mini">
+              <div class="style-mini-icon">🎤</div>
+              <span>流行</span>
+            </div>
+            <div class="style-mini">
+              <div class="style-mini-icon">🎸</div>
+              <span>摇滚</span>
+            </div>
+            <div class="style-mini">
+              <div class="style-mini-icon">🎧</div>
+              <span>电子</span>
+            </div>
+            <div class="style-mini">
+              <div class="style-mini-icon">🎻</div>
+              <span>民谣</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="recommend-section">
+          <h3>推荐作品</h3>
+          <div class="recommend-grid">
+            <div class="recommend-card">
+              <div class="recommend-cover" style="background: linear-gradient(135deg, #ec4899, #f43f5e);">
+                <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 3v10.55c-.59-.34-1.27-.55-2-.55-2.21 0-4 1.79-4 4s1.79 4 4 4 4-1.79 4-4V7h4V3h-6z"/></svg>
+                <span class="plays">1.2w</span>
+              </div>
+              <div class="recommend-info">
+                <h4>粉色气泡</h4>
+                <p>小鹿乱撞</p>
+              </div>
+            </div>
+            <div class="recommend-card">
+              <div class="recommend-cover" style="background: linear-gradient(135deg, #6366f1, #8b5cf6);">
+                <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 3v10.55c-.59-.34-1.27-.55-2-.55-2.21 0-4 1.79-4 4s1.79 4 4 4 4-1.79 4-4V7h4V3h-6z"/></svg>
+                <span class="plays">8.9k</span>
+              </div>
+              <div class="recommend-info">
+                <h4>星河入梦</h4>
+                <p>梦里水乡</p>
+              </div>
+            </div>
+            <div class="recommend-card">
+              <div class="recommend-cover" style="background: linear-gradient(135deg, #f59e0b, #ef4444);">
+                <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 3v10.55c-.59-.34-1.27-.55-2-.55-2.21 0-4 1.79-4 4s1.79 4 4 4 4-1.79 4-4V7h4V3h-6z"/></svg>
+                <span class="plays">6.5k</span>
+              </div>
+              <div class="recommend-info">
+                <h4>燃烧吧青春</h4>
+                <p>热血青年</p>
+              </div>
+            </div>
+            <div class="recommend-card">
+              <div class="recommend-cover" style="background: linear-gradient(135deg, #06b6d4, #3b82f6);">
+                <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 3v10.55c-.59-.34-1.27-.55-2-.55-2.21 0-4 1.79-4 4s1.79 4 4 4 4-1.79 4-4V7h4V3h-6z"/></svg>
+                <span class="plays">5.2k</span>
+              </div>
+              <div class="recommend-info">
+                <h4>海浪的声音</h4>
+                <p>海的儿子</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 我的 Tab -->
+    <div class="page tab-page" id="pageProfile">
+      <div class="profile-page">
+        <div class="profile-header">
+          <div class="profile-avatar">🎵</div>
+          <div class="profile-name">音乐创作人</div>
+          <div class="profile-bio">用声音记录生活 | AI 音乐爱好者</div>
+          <div class="profile-stats">
+            <div class="profile-stat">
+              <div class="num">12</div>
+              <div class="label">作品</div>
+            </div>
+            <div class="profile-stat">
+              <div class="num">328</div>
+              <div class="label">获赞</div>
+            </div>
+            <div class="profile-stat">
+              <div class="num">56</div>
+              <div class="label">收藏</div>
+            </div>
+            <div class="profile-stat">
+              <div class="num">1.2k</div>
+              <div class="label">粉丝</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="vip-card">
+          <div class="vip-left">
+            <h4>开通会员</h4>
+            <p>无限创作 · 无损音质 · 无水印</p>
+          </div>
+          <span class="vip-btn">立即开通</span>
+        </div>
+
+        <div class="menu-section">
+          <div class="menu-item">
+            <div class="menu-icon">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path></svg>
+            </div>
+            <span class="menu-text">我的收藏</span>
+            <span class="menu-arrow">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"></polyline></svg>
+            </span>
+          </div>
+          <div class="menu-item">
+            <div class="menu-icon">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
+            </div>
+            <span class="menu-text">下载记录</span>
+            <span class="menu-arrow">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"></polyline></svg>
+            </span>
+          </div>
+          <div class="menu-item">
+            <div class="menu-icon">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line></svg>
+            </div>
+            <span class="menu-text">创作草稿</span>
+            <span class="menu-arrow">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"></polyline></svg>
+            </span>
+          </div>
+        </div>
+
+        <div class="menu-section">
+          <div class="menu-item">
+            <div class="menu-icon">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path></svg>
+            </div>
+            <span class="menu-text">通用设置</span>
+            <span class="menu-arrow">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"></polyline></svg>
+            </span>
+          </div>
+          <div class="menu-item">
+            <div class="menu-icon">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect><path d="M7 11V7a5 5 0 0 1 10 0v4"></path></svg>
+            </div>
+            <span class="menu-text">隐私设置</span>
+            <span class="menu-arrow">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"></polyline></svg>
+            </span>
+          </div>
+          <div class="menu-item">
+            <div class="menu-icon">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"></path><line x1="12" y1="17" x2="12.01" y2="17"></line></svg>
+            </div>
+            <span class="menu-text">帮助与反馈</span>
+            <span class="menu-arrow">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"></polyline></svg>
+            </span>
+          </div>
+          <div class="menu-item">
+            <div class="menu-icon">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="16" x2="12" y2="12"></line><line x1="12" y1="8" x2="12.01" y2="8"></line></svg>
+            </div>
+            <span class="menu-text">关于我们</span>
+            <span class="menu-arrow">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"></polyline></svg>
+            </span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Tab Bar -->
+  <div class="tab-bar">
+    <div class="tab-item active" data-tab="create" onclick="switchTab('create')">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"></path><path d="M19 10v2a7 7 0 0 1-14 0v-2"></path><line x1="12" y1="19" x2="12" y2="23"></line><line x1="8" y1="23" x2="16" y2="23"></line></svg>
+      <span>创作</span>
+    </div>
+    <div class="tab-item" data-tab="works" onclick="switchTab('works')">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18V5l12-2v13"></path><circle cx="6" cy="18" r="3"></circle><circle cx="18" cy="16" r="3"></circle></svg>
+      <span>作品</span>
+    </div>
+    <div class="tab-item center-btn" onclick="switchTab('create'); goToRecord();">
+      <div class="center-icon">
+        <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 14c1.66 0 2.99-1.34 2.99-3L15 5c0-1.66-1.34-3-3-3S9 3.34 9 5v6c0 1.66 1.34 3 3 3zm5.3-3c0 3-2.54 5.1-5.3 5.1S6.7 14 6.7 11H5c0 3.41 2.72 6.23 6 6.72V21h2v-3.28c3.28-.48 6-3.3 6-6.72h-1.7z"/></svg>
+      </div>
+    </div>
+    <div class="tab-item" data-tab="discover" onclick="switchTab('discover')">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
+      <span>发现</span>
+    </div>
+    <div class="tab-item" data-tab="profile" onclick="switchTab('profile')">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>
+      <span>我的</span>
+    </div>
+  </div>
+</div>
+
+<!-- Toast -->
+<div class="toast" id="toast"></div>
+
+<script>
+  // ============ 状态管理 ============
+  const state = {
+    currentTab: 'create',
+    pageStack: [],
+    isRecording: false,
+    recordingTime: 0,
+    recordTimer: null,
+    mediaRecorder: null,
+    audioChunks: [],
+    audioContext: null,
+    analyser: null,
+    canvasCtx: null,
+    animationId: null,
+    currentStyle: 'pop',
+    currentMood: 'happy',
+    selectedInstruments: ['piano'],
+    isPlaying: false,
+    playTimer: null,
+    currentTime: 0,
+    totalTime: 30,
+    masterGain: null,
+    songNodes: [],
+    currentSongTitle: '夏天的回忆'
+  };
+
+  // ============ Tab 切换 ============
+  function switchTab(tab) {
+    state.currentTab = tab;
+    
+    // 更新 Tab Bar 状态
+    document.querySelectorAll('.tab-item').forEach(item => {
+      item.classList.remove('active');
+      if (item.dataset.tab === tab) item.classList.add('active');
+    });
+
+    // 切换 Tab 页面
+    const tabMap = {
+      'create': 'pageCreate',
+      'works': 'pageWorks',
+      'discover': 'pageDiscover',
+      'profile': 'pageProfile'
+    };
+
+    document.querySelectorAll('.tab-page').forEach(page => {
+      page.classList.remove('active');
+    });
+
+    const targetPage = document.getElementById(tabMap[tab]);
+    if (targetPage) targetPage.classList.add('active');
+
+    // 更新导航栏
+    const titles = {
+      'create': '创作',
+      'works': '我的作品',
+      'discover': '发现',
+      'profile': '我的'
+    };
+    document.getElementById('navTitle').textContent = titles[tab];
+    document.getElementById('navBack').style.visibility = 'hidden';
+    
+    // 清空页面栈
+    state.pageStack = [];
+    
+    // 停止播放
+    stopPlay();
+  }
+
+  // ============ 页面导航 ============
+  function pushPage(pageId, title) {
+    const currentPage = document.querySelector('.page:not(.tab-page).active');
+    if (currentPage) {
+      currentPage.classList.remove('active');
+      currentPage.style.transform = 'translateX(-30%)';
+      currentPage.style.opacity = '0.5';
+    }
+
+    const targetPage = document.getElementById(pageId);
+    if (targetPage) {
+      state.pageStack.push(currentPage ? currentPage.id : null);
+      targetPage.style.transform = 'translateX(0)';
+      targetPage.classList.add('active');
+      
+      if (title) {
+        document.getElementById('navTitle').textContent = title;
+      }
+      document.getElementById('navBack').style.visibility = 'visible';
+    }
+  }
+
+  function popPage() {
+    if (state.pageStack.length === 0) return;
+    
+    const currentPage = document.querySelector('.page:not(.tab-page).active');
+    if (currentPage) {
+      currentPage.classList.remove('active');
+      currentPage.style.transform = 'translateX(100%)';
+    }
+
+    const prevPageId = state.pageStack.pop();
+    if (prevPageId) {
+      const prevPage = document.getElementById(prevPageId);
+      if (prevPage) {
+        prevPage.classList.add('active');
+        prevPage.style.transform = 'translateX(0)';
+        prevPage.style.opacity = '1';
+      }
+    } else {
+      // 回到 Tab 页
+      document.getElementById('navBack').style.visibility = 'hidden';
+      const titles = {
+        'create': '创作',
+        'works': '我的作品',
+        'discover': '发现',
+        'profile': '我的'
+      };
+      document.getElementById('navTitle').textContent = titles[state.currentTab];
+    }
+
+    stopPlay();
+    stopRecording();
+  }
+
+  document.getElementById('navBack').addEventListener('click', popPage);
+
+  // ============ 录音页导航 ============
+  function goToRecord() {
+    pushPage('pageRecord', '录制旋律');
+    initRecordCanvas();
+  }
+
+  function goToStyle() {
+    pushPage('pageStyle', '选择风格');
+    stopRecording();
+  }
+
+  function goToDetail(title) {
+    state.currentSongTitle = title || '夏天的回忆';
+    document.getElementById('detailTitle').textContent = state.currentSongTitle;
+    pushPage('pageDetail', '歌曲详情');
+    generateSongData();
+  }
+
+  // ============ 录音功能 ============
+  function initRecordCanvas() {
+    const canvas = document.getElementById('recordCanvas');
+    canvas.width = canvas.offsetWidth * 2;
+    canvas.height = canvas.offsetHeight * 2;
+    state.canvasCtx = canvas.getContext('2d');
+    state.canvasCtx.scale(2, 2);
+    drawIdleWave();
+  }
+
+  function drawIdleWave() {
+    if (!state.canvasCtx || state.isRecording) return;
+    
+    const canvas = document.getElementById('recordCanvas');
+    const w = canvas.offsetWidth;
+    const h = canvas.offsetHeight;
+    const ctx = state.canvasCtx;
+    
+    ctx.clearRect(0, 0, w, h);
+    ctx.strokeStyle = 'rgba(167, 139, 250, 0.3)';
+    ctx.lineWidth = 2;
+    ctx.beginPath();
+    ctx.moveTo(0, h / 2);
+    
+    for (let i = 0; i < w; i++) {
+      const y = h / 2 + Math.sin(i * 0.03) * 3;
+      ctx.lineTo(i, y);
+    }
+    ctx.stroke();
+    
+    if (!state.isRecording) {
+      state.animationId = requestAnimationFrame(drawIdleWave);
+    }
+  }
+
+  async function toggleRecord() {
+    if (state.isRecording) {
+      stopRecording();
+    } else {
+      await startRecording();
+    }
+  }
+
+  async function startRecording() {
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+      
+      state.audioContext = new (window.AudioContext || window.webkitAudioContext)();
+      const source = state.audioContext.createMediaStreamSource(stream);
+      state.analyser = state.audioContext.createAnalyser();
+      state.analyser.fftSize = 256;
+      source.connect(state.analyser);
+      
+      state.mediaRecorder = new MediaRecorder(stream);
+      state.audioChunks = [];
+      
+      state.mediaRecorder.ondataavailable = (e) => {
+        if (e.data.size > 0) state.audioChunks.push(e.data);
+      };
+      
+      state.mediaRecorder.start();
+      state.isRecording = true;
+      state.recordingTime = 0;
+      
+      const btn = document.getElementById('recordBtn');
+      btn.classList.add('recording');
+      document.getElementById('recordTimer').classList.add('recording');
+      document.getElementById('deleteBtn').style.visibility = 'visible';
+      document.getElementById('doneBtn').style.visibility = 'visible';
+      
+      state.recordTimer = setInterval(() => {
+        state.recordingTime++;
+        const mins = Math.floor(state.recordingTime / 60).toString().padStart(2, '0');
+        const secs = (state.recordingTime % 60).toString().padStart(2, '0');
+        document.getElementById('recordTimer').textContent = `${mins}:${secs}`;
+      }, 1000);
+      
+      drawWaveform();
+      showToast('开始录音');
+      
+    } catch (err) {
+      showToast('无法访问麦克风，请检查权限');
+      console.error(err);
+    }
+  }
+
+  function stopRecording() {
+    if (!state.isRecording) return;
+    
+    state.isRecording = false;
+    
+    if (state.mediaRecorder && state.mediaRecorder.state !== 'inactive') {
+      state.mediaRecorder.stop();
+    }
+    
+    if (state.recordTimer) {
+      clearInterval(state.recordTimer);
+      state.recordTimer = null;
+    }
+    
+    if (state.animationId) {
+      cancelAnimationFrame(state.animationId);
+    }
+    
+    const btn = document.getElementById('recordBtn');
+    btn.classList.remove('recording');
+    document.getElementById('recordTimer').classList.remove('recording');
+  }
+
+  function deleteRecording() {
+    stopRecording();
+    state.recordingTime = 0;
+    document.getElementById('recordTimer').textContent = '00:00';
+    document.getElementById('deleteBtn').style.visibility = 'hidden';
+    document.getElementById('doneBtn').style.visibility = 'hidden';
+    drawIdleWave();
+    showToast('已删除录音');
+  }
+
+  function drawWaveform() {
+    if (!state.isRecording || !state.analyser) return;
+    
+    const canvas = document.getElementById('recordCanvas');
+    const w = canvas.offsetWidth;
+    const h = canvas.offsetHeight;
+    const ctx = state.canvasCtx;
+    
+    const bufferLength = state.analyser.frequencyBinCount;
+    const dataArray = new Uint8Array(bufferLength);
+    state.analyser.getByteFrequencyData(dataArray);
+    
+    ctx.clearRect(0, 0, w, h);
+    
+    const barWidth = (w / bufferLength) * 2.5;
+    let x = 0;
+    
+    for (let i = 0; i < bufferLength; i++) {
+      const barHeight = (dataArray[i] / 255) * (h * 0.8);
+      
+      const gradient = ctx.createLinearGradient(0, h / 2 - barHeight / 2, 0, h / 2 + barHeight / 2);
+      gradient.addColorStop(0, 'rgba(167, 139, 250, 0.8)');
+      gradient.addColorStop(0.5, 'rgba(244, 114, 182, 0.9)');
+      gradient.addColorStop(1, 'rgba(167, 139, 250, 0.8)');
+      
+      ctx.fillStyle = gradient;
+      ctx.fillRect(x, h / 2 - barHeight / 2, barWidth - 2, barHeight);
+      
+      x += barWidth;
+      if (x > w) break;
+    }
+    
+    state.animationId = requestAnimationFrame(drawWaveform);
+  }
+
+  // ============ 风格选择 ============
+  document.querySelectorAll('#styleGrid .style-card').forEach(card => {
+    card.addEventListener('click', () => {
+      document.querySelectorAll('#styleGrid .style-card').forEach(c => c.classList.remove('selected'));
+      card.classList.add('selected');
+      state.currentStyle = card.dataset.style;
+    });
+  });
+
+  document.querySelectorAll('#moodTags .tag').forEach(tag => {
+    tag.addEventListener('click', () => {
+      document.querySelectorAll('#moodTags .tag').forEach(t => t.classList.remove('selected'));
+      tag.classList.add('selected');
+      state.currentMood = tag.dataset.mood;
+    });
+  });
+
+  document.querySelectorAll('#instrTags .tag').forEach(tag => {
+    tag.addEventListener('click', () => {
+      tag.classList.toggle('selected');
+      const instr = tag.dataset.instr;
+      if (state.selectedInstruments.includes(instr)) {
+        state.selectedInstruments = state.selectedInstruments.filter(i => i !== instr);
+      } else {
+        state.selectedInstruments.push(instr);
+      }
+    });
+  });
+
+  // ============ 生成音乐 ============
+  function startGenerate() {
+    pushPage('pageGenerating', '生成中');
+    document.getElementById('navBack').style.visibility = 'hidden';
+    
+    const steps = [
+      { id: 'step1', status: 'AI 正在聆听你的旋律...' },
+      { id: 'step2', status: '正在生成主旋律...' },
+      { id: 'step3', status: '正在匹配音乐风格...' },
+      { id: 'step4', status: '正在生成和声编曲...' },
+      { id: 'step5', status: 'AI 正在填词...' },
+      { id: 'step6', status: '正在混音处理...' }
+    ];
+    
+    let currentStep = 0;
+    
+    function nextStep() {
+      if (currentStep > 0) {
+        const prevStep = document.getElementById(steps[currentStep - 1].id);
+        prevStep.classList.remove('active');
+        prevStep.classList.add('done');
+        prevStep.querySelector('.step-icon').innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>';
+      }
+      
+      if (currentStep < steps.length) {
+        const step = document.getElementById(steps[currentStep].id);
+        step.classList.add('active');
+        document.getElementById('genStatus').textContent = steps[currentStep].status;
+        document.getElementById('genProgress').style.width = ((currentStep + 1) / steps.length * 100) + '%';
+        currentStep++;
+        setTimeout(nextStep, 800 + Math.random() * 500);
+      } else {
+        setTimeout(() => {
+          goToDetail(state.currentSongTitle);
+        }, 500);
+      }
+    }
+    
+    setTimeout(nextStep, 500);
+  }
+
+  // ============ 音乐播放 ============
+  function generateSongData() {
+    const duration = 30;
+    state.totalTime = duration;
+    state.currentTime = 0;
+    document.getElementById('totalTime').textContent = '0:' + duration.toString().padStart(2, '0');
+    document.getElementById('detailDuration').textContent = '00:' + duration.toString().padStart(2, '0');
+    updatePlayProgress();
+  }
+
+  function togglePlay() {
+    if (state.isPlaying) {
+      stopPlay();
+    } else {
+      startPlay();
+    }
+  }
+
+  function startPlay() {
+    if (!state.audioContext) {
+      state.audioContext = new (window.AudioContext || window.webkitAudioContext)();
+    }
+    
+    state.isPlaying = true;
+    
+    const playIcon = document.getElementById('playIcon');
+    playIcon.innerHTML = '<path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z"/>';
+    
+    const cover = document.getElementById('detailCover');
+    cover.classList.add('playing');
+    
+    // 生成 Web Audio 音乐
+    playGeneratedSong();
+    
+    state.playTimer = setInterval(() => {
+      state.currentTime += 0.1;
+      if (state.currentTime >= state.totalTime) {
+        state.currentTime = 0;
+        stopPlay();
+      }
+      updatePlayProgress();
+      updateLyrics();
+    }, 100);
+  }
+
+  function stopPlay() {
+    state.isPlaying = false;
+    
+    const playIcon = document.getElementById('playIcon');
+    playIcon.innerHTML = '<path d="M8 5v14l11-7z"/>';
+    
+    const cover = document.getElementById('detailCover');
+    cover.classList.remove('playing');
+    
+    if (state.playTimer) {
+      clearInterval(state.playTimer);
+      state.playTimer = null;
+    }
+    
+    // 停止所有音频
+    if (state.masterGain) {
+      try {
+        state.masterGain.gain.cancelScheduledValues(state.audioContext.currentTime);
+        state.masterGain.gain.setValueAtTime(state.masterGain.gain.value, state.audioContext.currentTime);
+        state.masterGain.gain.exponentialRampToValueAtTime(0.001, state.audioContext.currentTime + 0.1);
+      } catch (e) {}
+    }
+  }
+
+  function playGeneratedSong() {
+    const ctx = state.audioContext;
+    if (state.masterGain) {
+      try { state.masterGain.disconnect(); } catch (e) {}
+    }
+    
+    state.masterGain = ctx.createGain();
+    state.masterGain.gain.value = 0.3;
+    state.masterGain.connect(ctx.destination);
+    
+    const now = ctx.currentTime;
+    const style = state.currentStyle;
+    
+    // 简单的音阶
+    const scale = style === 'minor' ? [0, 2, 3, 5, 7, 8, 10, 12] : [0, 2, 4, 5, 7, 9, 11, 12];
+    const baseFreq = 261.63; // C4
+    
+    function noteToFreq(semitone) {
+      return baseFreq * Math.pow(2, semitone / 12);
+    }
+    
+    // 旋律
+    const melodyNotes = [0, 2, 4, 5, 4, 2, 0, 2, 4, 5, 7, 5, 4, 2, 0];
+    const noteDuration = state.totalTime / melodyNotes.length;
+    
+    melodyNotes.forEach((note, i) => {
+      const osc = ctx.createOscillator();
+      const gain = ctx.createGain();
+      
+      osc.type = 'sine';
+      osc.frequency.value = noteToFreq(scale[note % scale.length] + 12);
+      
+      const startTime = now + i * noteDuration;
+      const endTime = startTime + noteDuration * 0.8;
+      
+      gain.gain.setValueAtTime(0, startTime);
+      gain.gain.linearRampToValueAtTime(0.2, startTime + 0.02);
+      gain.gain.setValueAtTime(0.2, endTime - 0.1);
+      gain.gain.exponentialRampToValueAtTime(0.001, endTime);
+      
+      osc.connect(gain);
+      gain.connect(state.masterGain);
+      
+      osc.start(startTime);
+      osc.stop(endTime);
+    });
+    
+    // 简单鼓点
+    const bpm = 120;
+    const beatInterval = 60 / bpm;
+    const totalBeats = Math.floor(state.totalTime / beatInterval);
+    
+    for (let i = 0; i < totalBeats; i++) {
+      const startTime = now + i * beatInterval;
+      
+      // kick
+      const kickOsc = ctx.createOscillator();
+      const kickGain = ctx.createGain();
+      kickOsc.frequency.setValueAtTime(150, startTime);
+      kickOsc.frequency.exponentialRampToValueAtTime(0.01, startTime + 0.1);
+      kickGain.gain.setValueAtTime(0.5, startTime);
+      kickGain.gain.exponentialRampToValueAtTime(0.001, startTime + 0.15);
+      kickOsc.connect(kickGain);
+      kickGain.connect(state.masterGain);
+      kickOsc.start(startTime);
+      kickOsc.stop(startTime + 0.15);
+      
+      // hihat on off-beats
+      if (i % 2 === 1) {
+        const noiseBuffer = ctx.createBuffer(1, ctx.sampleRate * 0.05, ctx.sampleRate);
+        const data = noiseBuffer.getChannelData(0);
+        for (let j = 0; j < data.length; j++) data[j] = Math.random() * 2 - 1;
+        
+        const noise = ctx.createBufferSource();
+        noise.buffer = noiseBuffer;
+        const noiseGain = ctx.createGain();
+        const filter = ctx.createBiquadFilter();
+        filter.type = 'highpass';
+        filter.frequency.value = 5000;
+        noiseGain.gain.setValueAtTime(0.1, startTime);
+        noiseGain.gain.exponentialRampToValueAtTime(0.001, startTime + 0.05);
+        noise.connect(filter);
+        filter.connect(noiseGain);
+        noiseGain.connect(state.masterGain);
+        noise.start(startTime);
+      }
+    }
+    
+    // 和弦
+    const chordNotes = [0, 4, 7];
+    const chordDuration = state.totalTime / 4;
+    
+    for (let c = 0; c < 4; c++) {
+      const startTime = now + c * chordDuration;
+      chordNotes.forEach(note => {
+        const osc = ctx.createOscillator();
+        const gain = ctx.createGain();
+        osc.type = 'triangle';
+        osc.frequency.value = noteToFreq(note) / 2;
+        gain.gain.setValueAtTime(0, startTime);
+        gain.gain.linearRampToValueAtTime(0.08, startTime + 0.1);
+        gain.gain.setValueAtTime(0.08, startTime + chordDuration - 0.2);
+        gain.gain.exponentialRampToValueAtTime(0.001, startTime + chordDuration - 0.05);
+        osc.connect(gain);
+        gain.connect(state.masterGain);
+        osc.start(startTime);
+        osc.stop(startTime + chordDuration);
+      });
+    }
+  }
+
+  function updatePlayProgress() {
+    const percent = (state.currentTime / state.totalTime) * 100;
+    document.getElementById('playerProgressFill').style.width = percent + '%';
+    
+    const mins = Math.floor(state.currentTime / 60);
+    const secs = Math.floor(state.currentTime % 60).toString().padStart(2, '0');
+    document.getElementById('currentTime').textContent = `${mins}:${secs}`;
+  }
+
+  function updateLyrics() {
+    const lines = document.querySelectorAll('.lyric-line');
+    const lineDuration = state.totalTime / lines.length;
+    const currentLine = Math.floor(state.currentTime / lineDuration);
+    
+    lines.forEach((line, i) => {
+      line.classList.toggle('active', i === currentLine);
+    });
+    
+    const lyricsBox = document.getElementById('lyricsBox');
+    const activeLine = lines[currentLine];
+    if (activeLine) {
+      const scrollTop = activeLine.offsetTop - lyricsBox.offsetHeight / 2 + activeLine.offsetHeight / 2;
+      lyricsBox.scrollTo({ top: scrollTop, behavior: 'smooth' });
+    }
+  }
+
+  function seekTo(event) {
+    const bar = document.getElementById('playerProgress');
+    const rect = bar.getBoundingClientRect();
+    const percent = (event.clientX - rect.left) / rect.width;
+    state.currentTime = percent * state.totalTime;
+    updatePlayProgress();
+    updateLyrics();
+  }
+
+  // ============ Toast ============
+  function showToast(message) {
+    const toast = document.getElementById('toast');
+    toast.textContent = message;
+    toast.classList.add('show');
+    setTimeout(() => toast.classList.remove('show'), 2000);
+  }
+
+  // ============ 时间更新 ============
+  function updateStatusTime() {
+    const now = new Date();
+    const hours = now.getHours().toString();
+    const minutes = now.getMinutes().toString().padStart(2, '0');
+    document.getElementById('statusTime').textContent = `${hours}:${minutes}`;
+  }
+  updateStatusTime();
+  setInterval(updateStatusTime, 10000);
+
+  // ============ 初始化 ============
+  window.addEventListener('load', () => {
+    // 初始化默认 Tab
+    switchTab('create');
+  });
+
+  // 作品 Tab 切换
+  document.querySelectorAll('.works-tab').forEach(tab => {
+    tab.addEventListener('click', () => {
+      document.querySelectorAll('.works-tab').forEach(t => t.classList.remove('active'));
+      tab.classList.add('active');
+    });
+  });
+</script>
+</body>
+</html>
